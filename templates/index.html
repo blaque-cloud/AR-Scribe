@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/static/img/favicon.png">
+    <title>AR Scribe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('/static/img/books_background.jpg') center/cover no-repeat;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(100, 149, 237, 0.5);
+            /* Bluish tint with adjusted alpha value */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .title {
+            font-family: 'Montserrat';
+            text-align: center;
+            color: #fff;
+            src: local('Montserrat Italic'), local('Montserrat-Italic'), url("//static.parastorage.com/tag-bundler/api/v1/fonts-cache/googlefont/woff2/s/montserrat/v14/JTUQjIg1_i6t8kCHKm459WxRzS7m0dR9pBOi.woff2") format('woff2');
+            unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+            font-display: block;
+        }
+
+        .title span {
+            font-weight: normal;
+            /* Remove bold from "Welcome to" */
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            max-width: 630px;
+            margin-top: 20px;
+        }
+
+        .button {
+            width: 200px;
+            height: 200px;
+            background-color: #fff;
+            border: none;
+            border-radius: 15px;
+            color: #000;
+            font-size: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .button:hover {
+            background-color: rgba(220, 220, 220, 0.9);
+        }
+
+        .button img {
+            max-width: 80px;
+            max-height: 80px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="overlay">
+        <div class="title">
+            <span style="font-size: 30px;">Welcome to</span><br>
+            <span style="font-family: Montserrat Bold Italic; font-size: 48px;">AR Scribe</span>
+        </div>
+        <div class="buttons">
+            <button class="button" onclick="window.location.href='/learn'">
+                <img src="/static/img/learn_icon.png" alt="Learn Icon"> <!-- Image for Learn button -->
+                Learn
+            </button>
+            <button class="button" onclick="window.location.href='/evaluate'">
+                <img src="/static/img/evaluate_icon.png" alt="Evaluate Icon"> <!-- Image for Evaluate button -->
+                Evaluate
+            </button>
+            <button class="button" onclick="window.location.href='/practice'">
+                <img src="/static/img/practice_icon.png" alt="Practice Icon"> <!-- Image for Practice button -->
+                Practice
+            </button>
+        </div>
+    </div>
+</body>
+</html>
