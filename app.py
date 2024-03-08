@@ -11,19 +11,31 @@ from tensorflow.keras.models import load_model
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
+cap = cv2.VideoCapture(0)
+cap.set(3, 1920)
+cap.set(4, 1080)
 accuracy = 0
 ch = {}
+k = 0
+char = ''
+ra = 0
+cha = []
+raa = []
+
+frame_shape = (1080, 1920, 3)
+imgCanvas = np.zeros((1080, 1920, 3), dtype='uint8')
+AlphaMODEL = load_model("./static/models/alpha.h5")
+AlphaLABELS = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J',
+               10: 'K', 11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T',
+               20: 'U', 21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z', 26: ''}
 
 
-def prac(flag):
-    cap = cv2.VideoCapture(0)
-    if flag == 1:
-        cap.release()
-    # frame_shape = (1080, 1920, 3)
-    mask = np.zeros(frame_shape, dtype='uint8')
-    imgCanvas = np.zeros((1080, 1920, 3), dtype='uint8')
+def prac():
+    global cap
 
     prac_char = chr(random.randint(ord('A'), ord('Z')))
+
+    cap = cv2.VideoCapture(0)
     video_capture2 = cv2.VideoCapture(f'.\\static\\char\\{prac_char}.mp4')
 
     hands = mp.solutions.hands
@@ -33,24 +45,25 @@ def prac(flag):
 
     colour = (1, 1, 1)
     thickness = 63
-
     font_size = 900
     font = ImageFont.truetype("./static/font/font.otf", font_size)
 
-    prevxy = None
+    mask = np.zeros(frame_shape, dtype='uint8')
+    img_pil = Image.fromarray(mask)
+    dra = ImageDraw.Draw(img_pil)
+    dra.text((1000, 160), prac_char, font=font, fill=(1, 1, 1))
+    mask = np.array(img_pil)
 
-    AlphaMODEL = load_model("./static/models/alpha.h5")
-    AlphaLABELS = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J',
-                   10: 'K', 11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T',
-                   20: 'U', 21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z', 26: ''}
+    prevxy = None
 
     while True:
         if keyboard.is_pressed('q'):
             mask = np.zeros(frame_shape, dtype='uint8')
+            img_pil = Image.fromarray(mask)
+            dra = ImageDraw.Draw(img_pil)
+            dra.text((1000, 160), prac_char, font=font, fill=(1, 1, 1))
+            mask = np.array(img_pil)
 
-        mask = cv2.resize(mask, (1920, 1080))
-        cap.set(3, 1920)
-        cap.set(4, 1080)
         success1, frame1 = cap.read()
         success2, frame2 = video_capture2.read()
 
@@ -81,27 +94,12 @@ def prac(flag):
                     if math.dist(prevxy, [x1, y1]) > 5:
                         if 1000 < x1 < 1720 and 150 < y1 < 900:
                             cv2.line(mask, prevxy, (x1, y1), colour, thickness)
-                            cv2.line(imgCanvas, prevxy, (x1, y1), (255, 255, 255), thickness)
                 prevxy = (x1, y1)
 
         frame1 = cv2.resize(frame1, (1920, 1080))
         frame1 = np.where(mask, mask, frame1)
         frame1 = cv2.resize(frame1, (1050, 700))
         frame2 = cv2.resize(frame2, (450, 700))
-
-        img_pil = Image.fromarray(mask)
-        dra = ImageDraw.Draw(img_pil)
-        dra.text((1000, 160), prac_char, font=font, fill=(1, 1, 1))
-        mask = np.array(img_pil)
-        mask = cv2.resize(mask, (922, 700))
-
-        if keyboard.is_pressed("a"):
-            ima = cv2.resize(imgCanvas, (28, 28))
-            ima = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
-            ima = ima.reshape((28, 28, 1))
-            ima = ima.astype('float32') / 255
-            val = str(AlphaLABELS[np.argmax(AlphaMODEL.predict(np.array([ima])))])
-            print(val)
 
         side_by_side = cv2.hconcat([frame2, frame1])
 
@@ -111,34 +109,16 @@ def prac(flag):
                b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
 
 
-frame_shape = (1080, 1920, 3)
-eva_mask = np.zeros(frame_shape, dtype='uint8')
-nex = 0
-
-# char = chr(random.randint(ord('A'), ord('Z')))
-c = ['A', 'B', 'C', 'D']
-
-
-def eva(flag):
-    global accuracy
-    global char
-    global ch
-    global nex
+def eva():
+    global cap
     global ra
+    global imgCanvas
+
     cap = cv2.VideoCapture(0)
-    cap.set(3, 1920)
-    cap.set(4, 1080)
-    if flag == 1:
-        cap.release()
-    global eva_mask
+
     eva_mask = np.zeros(frame_shape, dtype='uint8')
     imgCanvas = np.zeros((1080, 1920, 3), dtype='uint8')
     cv2.rectangle(eva_mask, (900, 150), (1620, 900), (1, 1, 1), 2)
-
-    char = c[random.randint(0, 3)]
-
-    ra = random.randint(0, 1)
-    ra = 0
 
     img_path = f'.\\static\\char\\{char}_img.jpg'
 
@@ -152,17 +132,11 @@ def eva(flag):
 
     prevxy = None
 
-    AlphaMODEL = load_model("./static/models/alpha.h5")
-    AlphaLABELS = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J',
-                   10: 'K', 11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T',
-                   20: 'U', 21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z', 26: ''}
-
     while True:
         if keyboard.is_pressed('q'):
             eva_mask = np.zeros(frame_shape, dtype='uint8')
             cv2.rectangle(eva_mask, (900, 150), (1620, 900), (1, 1, 1), 2)
 
-        eva_mask = cv2.resize(eva_mask, (1920, 1080))
         success1, frame1 = cap.read()
 
         if not success1:
@@ -191,23 +165,6 @@ def eva(flag):
                             cv2.line(imgCanvas, prevxy, (x1, y1), (255, 255, 255), thickness)
                 prevxy = (x1, y1)
 
-        if nex == 1:
-            nex = 0
-            ima = cv2.resize(imgCanvas, (28, 28))
-            ima = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
-            ima = ima.reshape((28, 28, 1))
-            ima = ima.astype('float32') / 255
-            val = str(AlphaLABELS[np.argmax(AlphaMODEL.predict(np.array([ima])))])
-
-            accuracy += 1
-            ch[char] = val
-
-            print(accuracy)
-            print(ch)
-            if accuracy == 3:
-                accuracy = 0
-                ch = {}
-
         if ra == 1:
             frame1 = cv2.resize(frame1, (1920, 1080))
             frame1 = np.where(eva_mask, eva_mask, frame1)
@@ -232,18 +189,13 @@ def eva(flag):
                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
 
 
-def lrn(flag):
+def lrn():
     return
-
-
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 
 @app.route('/learn')
 def learn():
-    lrn(1)
+    lrn()
     return render_template('learn.html')
 
 
@@ -255,49 +207,78 @@ def start_learn():
 @app.route('/evaluate')
 def evaluate():
     session['page_load_count'] = 0
-    global ch, accuracy
+    global ch, accuracy, k, char, ra, cha, raa, cap
+    k = 0
     accuracy = 0
     ch = {}
-    eva(1)
+    c = ['A', 'B', 'C', 'D']
+    cha = ['C', 'B', 'D']
+    raa = [1, 0, 1]
+    char = cha[k]
+    ra = raa[k]
+    cap.release()
     return render_template('evaluate.html')
+
+
+def fun():
+    global imgCanvas, accuracy, ch, k, char, ra
+    ima = cv2.resize(imgCanvas, (28, 28))
+    ima = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
+    ima = ima.reshape((28, 28, 1))
+    ima = ima.astype('float32') / 255
+    val = str(AlphaLABELS[np.argmax(AlphaMODEL.predict(np.array([ima])))])
+
+    kx = k - 1
+    accuracy += 1
+    ch[cha[kx]] = val
+
+    k += 1
+    if k < 3:
+        char = cha[k]
+        ra = raa[k]
+    return
 
 
 @app.route('/evaluate/start_next')
 def start_eva():
-    global nex
-    nex = 1
-    return start_evaluate(1)
+    fun()
+    return start_evaluate()
 
 
 @app.route('/evaluate/start')
-def start_evaluate(fla=1):
+def start_evaluate():
+    global ch, accuracy
     if 'page_load_count' not in session:
         session['page_load_count'] = 0
 
-    if fla == 1:
-        session['page_load_count'] += 1
+    session['page_load_count'] += 1
 
     if session['page_load_count'] <= 3:
         return render_template('start_evaluate.html')
     else:
+        print(ch)
+        ch = {}
+        accuracy = 0
         session.pop('page_load_count', None)
         return redirect(url_for('result_evaluate'))
 
 
 @app.route('/evaluate/result')
 def result_evaluate():
-    session['page_load_count'] = 0
+    global cap
+    cap.release()
     return render_template('result_evaluate.html')
 
 
 @app.route('/eval_feed')
 def eval_feed():
-    return Response(eva(0), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(eva(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route('/practice')
 def practice():
-    prac(1)
+    global cap
+    cap.release()
     return render_template('practice.html')
 
 
@@ -308,7 +289,7 @@ def start_practice():
 
 @app.route('/prac_feed')
 def prac_feed():
-    return Response(prac(0), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(prac(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route("/get_char")
@@ -321,6 +302,11 @@ def get_char():
 def get_ra():
     global ra
     return jsonify({"variable": ra})
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 
 if __name__ == '__main__':

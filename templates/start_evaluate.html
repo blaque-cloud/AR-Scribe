@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -48,8 +47,8 @@
             border: none;
             cursor: pointer;
             position: fixed;
-            bottom: 15px;
-            right: 30px;
+            bottom: 10px;
+            right: 20px;
         }
     </style>
 </head>
@@ -61,27 +60,18 @@
     </div>
 
     <div class="buttons-container">
-
         <button class="button" onclick="window.location.href='/evaluate'">Exit</button>
 
         <button class="button" onclick="window.location.href='/evaluate/start_next'">Next</button>
     </div>
 
-    <div class="content">
-    <audio id="aud" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 4500)"></audio>
-    <button id ="img_but" class="image-button"></button>
+    <div id="content">
+        <audio id="aud" style="display: none;" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 2500)"></audio>
+        <button id="img-but" class="image-button"></button>
     </div>
 
     <script>
         var char, ra;
-
-        fetch("/get_ra")
-        .then(response => response.json())
-        .then(data => {
-            ra = data.variable;
-            console.log(ra);
-        })
-        .catch(error => console.error("Error fetching Python variable:", error));
 
         fetch("/get_char")
         .then(response => response.json())
@@ -90,17 +80,33 @@
             char = data.variable;
             const audSrc = '/static/sounds/' + char + '.mp3';
             audElement.src = audSrc;
+            console.log(audSrc);
         })
         .catch(error => console.error("Error fetching Python variable:", error));
 
-        const button = document.getElementById('img_but');
+        fetch("/get_ra")
+        .then(response => response.json())
+        .then(data => {
+            ra = data.variable;
+
+            if(ra === 0){
+                document.getElementById("aud").style.display = "block";
+            }
+            else{
+                document.getElementById("aud").muted = "true";
+                document.getElementById("img-but").style.bottom = "-200px";
+                document.getElementById("img-but").style.right = "-200px";
+            }
+        })
+        .catch(error => console.error("Error fetching Python variable:", error));
+
+        const button = document.getElementById('img-but');
 
         button.addEventListener('click', () => {
-        const audio = new Audio('/static/sounds/' + char + '.mp3');
+        const audPath = '/static/sounds/' + char + '.mp3';
+        const audio = new Audio(audPath);
         audio.play();
         });
     </script>
-
 </body>
-
 </html>
