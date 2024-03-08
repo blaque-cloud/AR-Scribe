@@ -48,8 +48,8 @@
             border: none;
             cursor: pointer;
             position: fixed;
-            bottom: 10px;
-            right: 20px;
+            bottom: 15px;
+            right: 30px;
         }
     </style>
 </head>
@@ -60,21 +60,29 @@
         <img src="{{ url_for('eval_feed') }}" width="1536" height="790" >
     </div>
 
-    <audio id="aud" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 8000)"></audio>
-
     <div class="buttons-container">
 
         <button class="button" onclick="window.location.href='/evaluate'">Exit</button>
 
-        <button class="button" onclick="window.location.href='/clear_feed'">Reset</button>
-
         <button class="button" onclick="window.location.href='/evaluate/start_next'">Next</button>
     </div>
 
-    <button class="image-button"></button>
+    <div class="content">
+    <audio id="aud" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 4500)"></audio>
+    <button id ="img_but" class="image-button"></button>
+    </div>
 
- <script>
-        var char;
+    <script>
+        var char, ra;
+
+        fetch("/get_ra")
+        .then(response => response.json())
+        .then(data => {
+            ra = data.variable;
+            console.log(ra);
+        })
+        .catch(error => console.error("Error fetching Python variable:", error));
+
         fetch("/get_char")
         .then(response => response.json())
         .then(data => {
@@ -82,15 +90,13 @@
             char = data.variable;
             const audSrc = '/static/sounds/' + char + '.mp3';
             audElement.src = audSrc;
-            console.log(audSrc);
         })
         .catch(error => console.error("Error fetching Python variable:", error));
 
-        const button = document.getElementById('image-button');
+        const button = document.getElementById('img_but');
 
         button.addEventListener('click', () => {
-        const audPath = '/static/sounds/' + char + '.mp3';
-        const audio = new Audio(audPath);
+        const audio = new Audio('/static/sounds/' + char + '.mp3');
         audio.play();
         });
     </script>

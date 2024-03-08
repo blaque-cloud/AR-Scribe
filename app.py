@@ -114,19 +114,17 @@ def prac(flag):
 frame_shape = (1080, 1920, 3)
 eva_mask = np.zeros(frame_shape, dtype='uint8')
 nex = 0
-rand = 0
 
 # char = chr(random.randint(ord('A'), ord('Z')))
 c = ['A', 'B', 'C', 'D']
-char = "A"
 
 
 def eva(flag):
-    global accuracy, char
+    global accuracy
+    global char
     global ch
     global nex
-    global rand
-
+    global ra
     cap = cv2.VideoCapture(0)
     cap.set(3, 1920)
     cap.set(4, 1080)
@@ -137,15 +135,12 @@ def eva(flag):
     imgCanvas = np.zeros((1080, 1920, 3), dtype='uint8')
     cv2.rectangle(eva_mask, (900, 150), (1620, 900), (1, 1, 1), 2)
 
-    if rand == 0:
-        char = c[random.randint(0, 3)]
+    char = c[random.randint(0, 3)]
 
     ra = random.randint(0, 1)
     ra = 0
-    if ra == 1:
-        img_path = f'.\\static\\char\\{char}_img.jpg'
-    else:
-        img_path = f'.\\static\\sounds\\A.mp3'
+
+    img_path = f'.\\static\\char\\{char}_img.jpg'
 
     hands = mp.solutions.hands
     hand_landmark = hands.Hands(max_num_hands=1)
@@ -197,9 +192,7 @@ def eva(flag):
                 prevxy = (x1, y1)
 
         if nex == 1:
-            rand = 0
             nex = 0
-            cv2.imshow("", imgCanvas)
             ima = cv2.resize(imgCanvas, (28, 28))
             ima = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
             ima = ima.reshape((28, 28, 1))
@@ -278,7 +271,6 @@ def start_eva():
 
 @app.route('/evaluate/start')
 def start_evaluate(fla=1):
-    global char
     if 'page_load_count' not in session:
         session['page_load_count'] = 0
 
@@ -286,23 +278,15 @@ def start_evaluate(fla=1):
         session['page_load_count'] += 1
 
     if session['page_load_count'] <= 3:
-        return render_template('start_evaluate.html', char=char)
+        return render_template('start_evaluate.html')
     else:
         session.pop('page_load_count', None)
         return redirect(url_for('result_evaluate'))
 
 
-@app.route('/clear_feed')
-def clear_feed():
-    global eva_mask, rand
-    rand = 1
-    eva_mask = np.zeros(frame_shape, dtype='uint8')
-    cv2.rectangle(eva_mask, (900, 150), (1620, 900), (1, 1, 1), 2)
-    return start_evaluate(0)
-
-
 @app.route('/evaluate/result')
 def result_evaluate():
+    session['page_load_count'] = 0
     return render_template('result_evaluate.html')
 
 
@@ -331,6 +315,12 @@ def prac_feed():
 def get_char():
     global char
     return jsonify({"variable": char})
+
+
+@app.route("/get_ra")
+def get_ra():
+    global ra
+    return jsonify({"variable": ra})
 
 
 if __name__ == '__main__':
