@@ -20,7 +20,7 @@
 
         .buttons-container {
             display: flex;
-            justify-content: center; /* Center align the buttons */
+            justify-content: center;
             margin-top: 20px;
         }
 
@@ -32,27 +32,69 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            margin: 0 10px; /* Add margin between buttons */
-            padding: 10px 20px; /* Add padding to buttons */
+            margin: 0 10px;
+            padding: 10px 20px;
         }
 
         .button:hover {
             background-color: #e0e0e0;
         }
+        .image-button {
+            background-image: url('/static/img/play_audio.png');
+            background-size: cover;
+            background-color: #311e98;
+            width: 50px;
+            height: 50px;
+            border: none;
+            cursor: pointer;
+            position: fixed;
+            bottom: 10px;
+            right: 20px;
+        }
     </style>
 </head>
 
 <body>
+
     <div class="video-container">
-        <img src="{{ url_for('eval_feed') }}" width="1536" height="790" />
+        <img src="{{ url_for('eval_feed') }}" width="1536" height="790" >
     </div>
+
+    <audio id="aud" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 8000)"></audio>
 
     <div class="buttons-container">
 
         <button class="button" onclick="window.location.href='/evaluate'">Exit</button>
 
-        <button class="button" onclick="window.location.href='/evaluate/start'">Next</button>
+        <button class="button" onclick="window.location.href='/clear_feed'">Reset</button>
+
+        <button class="button" onclick="window.location.href='/evaluate/start_next'">Next</button>
     </div>
+
+    <button class="image-button"></button>
+
+ <script>
+        var char;
+        fetch("/get_char")
+        .then(response => response.json())
+        .then(data => {
+            const audElement = document.getElementById("aud");
+            char = data.variable;
+            const audSrc = '/static/sounds/' + char + '.mp3';
+            audElement.src = audSrc;
+            console.log(audSrc);
+        })
+        .catch(error => console.error("Error fetching Python variable:", error));
+
+        const button = document.getElementById('image-button');
+
+        button.addEventListener('click', () => {
+        const audPath = '/static/sounds/' + char + '.mp3';
+        const audio = new Audio(audPath);
+        audio.play();
+        });
+    </script>
+
 </body>
 
 </html>
