@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,7 +39,8 @@
         .button:hover {
             background-color: #e0e0e0;
         }
-        .toggle_button{
+
+        .toggle_button {
             background-image: url('/static/img/toggle.png');
             background-size: cover;
             background-color: #311e98;
@@ -52,9 +54,10 @@
         }
     </style>
 </head>
+
 <body>
     <div class="video-container">
-        <img src="{{ url_for('lrn_feed') }}" width="1536" height="790" >
+        <img src="{{ url_for('lrn_feed') }}" alt="" width="1536" height="790">
     </div>
 
     <div class="buttons-container">
@@ -66,16 +69,17 @@
 
     <script>
         function tog() {
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', '/lrn_toggle', true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                        console.log('Toggled successfully');
-                    }
-                };
-                xhr.send();
-            }
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/lrn_toggle', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    console.log('Toggled successfully');
+                }
+            };
+            xhr.send();
+        }
     </script>
 </body>
+
 </html>
