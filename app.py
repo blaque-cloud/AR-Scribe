@@ -6,6 +6,8 @@ import mediapipe as mp
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from flask import Flask, render_template, Response, redirect, url_for, session, jsonify
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
@@ -14,6 +16,7 @@ app.secret_key = 'your_secret_key_here'
 cap = cv2.VideoCapture(0)
 cap.set(3, 1920)
 cap.set(4, 1080)
+lrn_toggle = False
 accuracy = 0
 ch = {}
 k = 0
@@ -190,18 +193,111 @@ def eva():
 
 
 def lrn():
-    return
+    global cap, lrn_toggle
+
+    lrn_char = chr(random.randint(ord('A'), ord('Z')))
+
+    cap = cv2.VideoCapture(0)
+    video_capture2 = cv2.VideoCapture(f'.\\static\\char\\{lrn_char}.mp4')
+    img_path = f'.\\static\\char\\{lrn_char}_img.jpg'
+
+    hands = mp.solutions.hands
+    hand_landmark = hands.Hands(max_num_hands=1)
+
+    draw = mp.solutions.drawing_utils
+
+    colour = (1, 1, 1)
+    thickness = 63
+    font_size = 900
+    font = ImageFont.truetype("./static/font/font.otf", font_size)
+
+    lrn_mask = np.zeros(frame_shape, dtype='uint8')
+    img_pil = Image.fromarray(lrn_mask)
+    dra = ImageDraw.Draw(img_pil)
+    dra.text((1000, 160), lrn_char, font=font, fill=(1, 1, 1))
+    lrn_mask = np.array(img_pil)
+
+    prevxy = None
+
+    while True:
+        if keyboard.is_pressed('q'):
+            lrn_mask = np.zeros(frame_shape, dtype='uint8')
+            img_pil = Image.fromarray(lrn_mask)
+            dra = ImageDraw.Draw(img_pil)
+            dra.text((1000, 160), lrn_char, font=font, fill=(1, 1, 1))
+            lrn_mask = np.array(img_pil)
+
+        success1, frame1 = cap.read()
+        if not lrn_toggle:
+            success2, frame2 = video_capture2.read()
+
+            if not success2:
+                video_capture2.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                _, frame2 = video_capture2.read()
+
+        if not success1:
+            break
+
+        frame1 = cv2.flip(frame1, 1)
+        rgb = cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
+
+        op = hand_landmark.process(rgb)
+
+        if op.multi_hand_landmarks:
+            for all_landmarks in op.multi_hand_landmarks:
+                draw.draw_landmarks(frame1, all_landmarks, hands.HAND_CONNECTIONS)
+
+                x1 = int(all_landmarks.landmark[8].x * frame_shape[1])
+                y1 = int(all_landmarks.landmark[8].y * frame_shape[0])
+                x2 = int(all_landmarks.landmark[4].x * frame_shape[1])
+                y2 = int(all_landmarks.landmark[4].y * frame_shape[0])
+
+                d1 = math.dist([x1, y1], [x2, y2])
+
+                if d1 < 55 and prevxy is not None:
+                    if math.dist(prevxy, [x1, y1]) > 5:
+                        if 1000 < x1 < 1720 and 150 < y1 < 900:
+                            cv2.line(lrn_mask, prevxy, (x1, y1), colour, thickness)
+                prevxy = (x1, y1)
+
+        frame1 = cv2.resize(frame1, (1920, 1080))
+        frame1 = np.where(lrn_mask, lrn_mask, frame1)
+        frame1 = cv2.resize(frame1, (1050, 700))
+        if lrn_toggle:
+            frame2 = cv2.imread(img_path)
+        frame2 = cv2.resize(frame2, (450, 700))
+
+        side_by_side = cv2.hconcat([frame2, frame1])
+
+        ret, jpeg = cv2.imencode('.jpg', side_by_side)
+
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
 
 
 @app.route('/learn')
 def learn():
-    lrn()
+    global cap
+    cap.release()
     return render_template('learn.html')
 
 
 @app.route('/learn/start')
 def start_learn():
     return render_template('start_learn.html')
+
+
+@app.route('/lrn_feed')
+def lrn_feed():
+    return Response(lrn(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/lrn_toggle', methods=['POST'])
+def lrn_toggle():
+
+    global lrn_toggle
+    lrn_toggle = not lrn_toggle
+    return 'OK'
 
 
 @app.route('/evaluate')
@@ -211,7 +307,7 @@ def evaluate():
     k = 0
     accuracy = 0
     ch = {}
-    c = ['A', 'B', 'C', 'D']
+    # c = ['A', 'B', 'C', 'D']
     cha = ['C', 'B', 'D']
     raa = [1, 0, 1]
     char = cha[k]

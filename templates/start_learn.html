@@ -2,9 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AR Sribe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/static/img/favicon.png">
+    <title>AR Scribe</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #311e98;
+        }
+
+        .video-container {
+            display: flex;
+        }
+
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .button {
+            font-size: 18px;
+            background-color: #fff;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 0 10px;
+            padding: 10px 20px;
+        }
+
+        .button:hover {
+            background-color: #e0e0e0;
+        }
+        .toggle_button{
+            background-image: url('/static/img/toggle.png');
+            background-size: cover;
+            background-color: #311e98;
+            width: 70px;
+            height: 70px;
+            border: none;
+            cursor: pointer;
+            position: fixed;
+            bottom: 3px;
+            left: 20px;
+        }
+    </style>
 </head>
 <body>
+    <div class="video-container">
+        <img src="{{ url_for('lrn_feed') }}" width="1536" height="790" >
+    </div>
 
+    <div class="buttons-container">
+        <button class="button" onclick="window.location.href='/learn'">Exit</button>
+        <button class="button" onclick="window.location.href='/learn/start'">Next</button>
+    </div>
+
+    <button class="toggle_button" onclick="tog()"></button>
+
+    <script>
+        function tog() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/lrn_toggle', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                        console.log('Toggled successfully');
+                    }
+                };
+                xhr.send();
+            }
+    </script>
 </body>
 </html>
