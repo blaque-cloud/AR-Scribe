@@ -294,7 +294,6 @@ def lrn_feed():
 
 @app.route('/lrn_toggle', methods=['POST'])
 def lrn_toggle():
-
     global lrn_toggle
     lrn_toggle = not lrn_toggle
     return 'OK'
