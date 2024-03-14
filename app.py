@@ -25,7 +25,7 @@ char = ''
 ra = 0
 cha = []
 raa = []
-
+lrn_ch = -1
 frame_shape = (1080, 1920, 3)
 imgCanvas = np.zeros((1080, 1920, 3), dtype='uint8')
 AlphaMODEL = load_model("./static/models/alpha.h5")
@@ -204,9 +204,10 @@ def eva():
 
 
 def lrn():
-    global cap, lrn_toggle
+    global cap, lrn_toggle, lrn_ch
 
-    lrn_char = chr(random.randint(ord('A'), ord('Z')))
+    lrn_ch += 1
+    lrn_char = chr(ord('A') + lrn_ch)
 
     cap = cv2.VideoCapture(0)
     video_capture2 = cv2.VideoCapture(f'.\\static\\char\\{lrn_char}.mp4')
@@ -295,7 +296,11 @@ def learn():
 
 @app.route('/learn/start')
 def start_learn():
-    return render_template('start_learn.html')
+    global lrn_ch
+    if lrn_ch < 25:
+        return render_template('start_learn.html')
+    else:
+        return render_template('learn_complete.html')
 
 
 @app.route('/lrn_feed')
