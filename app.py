@@ -17,6 +17,7 @@ cap = cv2.VideoCapture(0)
 cap.set(3, 1920)
 cap.set(4, 1080)
 lrn_toggle = False
+prac_toggle = True
 accuracy = 0
 ch = {}
 k = 0
@@ -34,12 +35,13 @@ AlphaLABELS = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8
 
 
 def prac():
-    global cap
+    global cap, prac_toggle
 
     prac_char = chr(random.randint(ord('A'), ord('Z')))
 
     cap = cv2.VideoCapture(0)
-    video_capture2 = cv2.VideoCapture(f'.\\static\\char\\{prac_char}.mp4')
+    if prac_toggle:
+        video_capture2 = cv2.VideoCapture(f'.\\static\\char\\{prac_char}.mp4')
 
     hands = mp.solutions.hands
     hand_landmark = hands.Hands(max_num_hands=1)
@@ -51,31 +53,33 @@ def prac():
     font_size = 900
     font = ImageFont.truetype("./static/font/font.otf", font_size)
 
-    mask = np.zeros(frame_shape, dtype='uint8')
-    img_pil = Image.fromarray(mask)
+    prac_mask = np.zeros(frame_shape, dtype='uint8')
+    img_pil = Image.fromarray(prac_mask)
     dra = ImageDraw.Draw(img_pil)
     dra.text((1000, 160), prac_char, font=font, fill=(1, 1, 1))
-    mask = np.array(img_pil)
+    prac_mask = np.array(img_pil)
+    cv2.rectangle(prac_mask, (1000, 150), (1720, 900), (1, 1, 1), 2)
 
     prevxy = None
 
     while True:
         if keyboard.is_pressed('q'):
-            mask = np.zeros(frame_shape, dtype='uint8')
-            img_pil = Image.fromarray(mask)
+            prac_mask = np.zeros(frame_shape, dtype='uint8')
+            img_pil = Image.fromarray(prac_mask)
             dra = ImageDraw.Draw(img_pil)
             dra.text((1000, 160), prac_char, font=font, fill=(1, 1, 1))
-            mask = np.array(img_pil)
+            prac_mask = np.array(img_pil)
 
         success1, frame1 = cap.read()
-        success2, frame2 = video_capture2.read()
 
         if not success1:
             break
 
-        if not success2:
-            video_capture2.set(cv2.CAP_PROP_POS_FRAMES, 0)
-            _, frame2 = video_capture2.read()
+        if prac_toggle:
+            success2, frame2 = video_capture2.read()            
+            if not success2:
+                video_capture2.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                _, frame2 = video_capture2.read()
 
         frame1 = cv2.flip(frame1, 1)
         rgb = cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
@@ -95,16 +99,23 @@ def prac():
 
                 if d1 < 55 and prevxy is not None:
                     if math.dist(prevxy, [x1, y1]) > 5:
-                        if 1000 < x1 < 1720 and 150 < y1 < 900:
-                            cv2.line(mask, prevxy, (x1, y1), colour, thickness)
+                        if 1720 > x1 > 1000 > y1 > 150:
+                            cv2.line(prac_mask, prevxy, (x1, y1), colour, thickness)
                 prevxy = (x1, y1)
 
-        frame1 = cv2.resize(frame1, (1920, 1080))
-        frame1 = np.where(mask, mask, frame1)
-        frame1 = cv2.resize(frame1, (1050, 700))
-        frame2 = cv2.resize(frame2, (450, 700))
+        if keyboard.is_pressed('z'):
+            print(sum(prac_mask))
 
-        side_by_side = cv2.hconcat([frame2, frame1])
+        frame1 = cv2.resize(frame1, (1920, 1080))
+        frame1 = np.where(prac_mask, prac_mask, frame1)
+
+        if prac_toggle:
+            frame1 = cv2.resize(frame1, (1450, 700))
+            frame2 = cv2.resize(frame2, (450, 700))
+
+            side_by_side = cv2.hconcat([frame2, frame1])
+        else:
+            side_by_side = cv2.hconcat([frame1])
 
         ret, jpeg = cv2.imencode('.jpg', side_by_side)
 
@@ -385,6 +396,13 @@ def start_practice():
 @app.route('/prac_feed')
 def prac_feed():
     return Response(prac(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/prac_toggle', methods=['POST'])
+def prac_toggle():
+    global prac_toggle
+    prac_toggle = not prac_toggle
+    return 'OK'
 
 
 @app.route("/get_char")

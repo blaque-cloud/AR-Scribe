@@ -16,11 +16,13 @@
 
         .video-container {
             display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .buttons-container {
             display: flex;
-            justify-content: center; /* Center align the buttons */
+            justify-content: center;
             margin-top: 20px;
         }
 
@@ -32,19 +34,32 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            margin: 0 10px; /* Add margin between buttons */
-            padding: 10px 20px; /* Add padding to buttons */
+            margin: 0 10px;
+            padding: 10px 20px;
         }
 
         .button:hover {
             background-color: #e0e0e0;
+        }
+
+        .toggle_button {
+            background-image: url('/static/img/toggle.png');
+            background-size: cover;
+            background-color: #311e98;
+            width: 70px;
+            height: 70px;
+            border: none;
+            cursor: pointer;
+            position: fixed;
+            bottom: 3px;
+            left: 20px;
         }
     </style>
 </head>
 
 <body>
     <div class="video-container">
-        <img src="{{ url_for('prac_feed') }}" width="1536" height="790" />
+        <img src="{{ url_for('prac_feed') }}" width="1526" height="790" />
     </div>
 
     <div class="buttons-container">
@@ -53,6 +68,22 @@
 
         <button class="button" onclick="window.location.href='/practice/start'">Next</button>
     </div>
+
+    <button class="toggle_button" onclick="tog()"></button>
+
+    <script>
+        function tog() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/prac_toggle', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    console.log('Toggled successfully');
+                }
+            };
+            xhr.send();
+        }
+    </script>
 </body>
 
 </html>
