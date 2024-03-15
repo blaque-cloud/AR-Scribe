@@ -20,7 +20,7 @@ cap.set(4, 1080)
 lrn_toggle = True
 prac_toggle = False
 accuracy = 0
-ch = []
+result = []
 k = 0
 char = ''
 lrn_char = ''
@@ -320,7 +320,7 @@ def start_learn():
     if lrn_ch < 5:
         return render_template('start_learn.html')
     else:
-        return render_template('learn_complete.html')
+        return render_template('index.html')
 
 
 @app.route('/lrn_feed')
@@ -343,7 +343,7 @@ def get_lrnchar():
 
 @app.route('/evaluate')
 def evaluate():
-    global ch, accuracy, k, char, ra, cha, raa, cap, imgCanvas
+    global result, accuracy, k, char, ra, cha, raa, cap, imgCanvas
 
     ima = cv2.resize(imgCanvas, (28, 28))
     ima = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
@@ -354,7 +354,7 @@ def evaluate():
     session['page_load_count'] = 0
     k = 0
     accuracy = 0
-    ch = []
+    result = []
     c = ['A', 'B', 'C', 'D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
     cha = random.choices(c, k = 12)
     raa = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2]
@@ -365,7 +365,7 @@ def evaluate():
 
 
 def fun():
-    global imgCanvas, accuracy, ch, k, char, ra, cha, raa
+    global imgCanvas, accuracy, result, k, char, ra, cha, raa
     ima = cv2.resize(imgCanvas, (28, 28))
     ima = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
     ima = ima.reshape((28, 28, 1))
@@ -373,7 +373,8 @@ def fun():
     val = str(AlphaLABELS[np.argmax(AlphaMODEL.predict(np.array([ima])))])
 
     accuracy += 1
-    ch.append(val)
+    if val == val:
+        result.append(1)
 
     k += 1
     if k < 12:
@@ -390,7 +391,7 @@ def start_eva():
 
 @app.route('/evaluate/start')
 def start_evaluate():
-    global ch
+    global result
     if 'page_load_count' not in session:
         session['page_load_count'] = 0
 
@@ -400,7 +401,7 @@ def start_evaluate():
         return render_template('start_evaluate.html')
     else:
         print(cha)
-        print(ch)
+        print(result)
         session.pop('page_load_count', None)
         return redirect(url_for('result_evaluate'))
 
@@ -410,6 +411,13 @@ def result_evaluate():
     global cap
     cap.release()
     return render_template('result_evaluate.html')
+
+
+@app.route("/get_result")
+def get_result():
+    global result
+    result = [0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0]
+    return jsonify({"l1": sum(result[0:4]), "l2": sum(result[4:8]), "l3": sum(result[8:12])})
 
 
 @app.route('/eval_feed')

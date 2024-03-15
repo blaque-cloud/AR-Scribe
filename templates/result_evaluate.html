@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/static/img/favicon.png">
     <title>AR Scribe</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            height: 100vh;
+            text-align: center;
+            background-color: #311e98;
+            color: #fff;
+            margin-top: 70px;
         }
 
         .home_button {
@@ -37,16 +38,121 @@
             width: 55px;
             height: auto;
         }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+        }
+
+        .button_container {
+            display: flex;
+            justify-content: center;
+            position: absolute;
+            bottom: 20px;
+            margin-left: 630px;
+        }
+
+        .button {
+            font-size: 18px;
+            background-color: #fff;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 0 10px;
+            padding: 10px 20px;
+        }
+
+        .button:hover {
+            background-color: #e0e0e0;
+        }
     </style>
 </head>
+
 <body>
-<div>
-<button class="home_button" onclick="window.location.href='/evaluate'">
-    <img src="/static/img/home.png" alt="Home">
-</button>
-</div>
-<div>
-<h1>You Pass!!!</h1>
-</div>
+    <div>
+        <button class="home_button" onclick="window.location.href='/evaluate'">
+            <img src="/static/img/home.png" alt="Home">
+        </button>
+    </div>
+    <div style="margin-right: 10px; font-size: x-large;">
+        <h1>Test Score</h1>
+    </div>
+
+    <div class="container" style="margin-right: 10px; margin-bottom: 50px;">
+        <div style="margin-right: 50px;">
+            <h2>Level 1</h2>
+            <input id="l1" type="text" placeholder=0
+                style="text-align: center; font-size: 40px; width: 50px; height: 50px; margin-left: 25px; margin-right: 5px;" />
+            <span style="font-size: 25px; position: relative; top: 10px;">/4</span>
+        </div>
+        <div style="margin-right: 50px;">
+            <h2>Level 2</h2>
+            <input id="l2" type="text" placeholder=0
+                style="text-align: center; font-size: 40px; width: 50px; height: 50px; margin-left: 25px; margin-right: 5px;" />
+            <span style="font-size: 25px; position: relative; top: 10px;">/4</span>
+        </div>
+        <div>
+            <h2>Level 3</h2>
+            <input id="l3" type="text" placeholder=0
+                style="text-align: center; font-size: 40px; width: 50px; height: 50px; margin-left: 25px; margin-right: 5px;" />
+            <span style="font-size: 25px; position: relative; top: 10px;">/4</span>
+        </div>
+    </div>
+
+    <div style="margin-right: 10px;">
+        <h2 style="margin-right: 7px;">Total</h2>
+        <input id="total" type="text" placeholder=0
+            style="text-align: center; font-size: 40px; width: 50px; height: 50px; margin-left: 35px;" />
+        <span style="font-size: 25px; position: relative; top: 10px;">/12</span>
+    </div>
+
+    <div id="message" style="margin-top: 55px;"></div>
+
+    <div class="button_container">
+        <button class="button" onclick="window.location.href='/'">Home</button>
+        <button class="button" onclick="window.location.href='/practice'">Practice</button>
+    </div>
+
+    <script>
+
+        var l1, l2, l3, tot;
+        fetch("/get_result")
+            .then(response => response.json())
+            .then(data => {
+                l1 = data.l1;
+                l2 = data.l2;
+                l3 = data.l3;
+                tot = l1 + l2 + l3;
+
+                document.getElementById("l1").value = l1;
+                document.getElementById("l2").value = l2;
+                document.getElementById("l3").value = l3;
+                document.getElementById("total").value = tot;
+            })
+            .catch(error => console.error("Error fetching Python variable:", error));
+
+        if (tot < 6) {
+            document.getElementById("message")
+                .innerHTML = "<h1>Sorry, you did not pass the test. Please try again.</h1>";
+        } else if (tot >= 6 && tot < 8) {
+            document.getElementById("message")
+                .innerHTML = "<h1>Congratulations! You have passed the test.</h1>";
+        } else if (tot >= 8 && tot < 10) {
+            document.getElementById("message")
+                .innerHTML = "<h1>Congratulations! You have passed the test with distinction.</h1>";
+        } else if (tot >= 10 && tot < 12) {
+            document.getElementById("message")
+                .innerHTML = "<h1>Congratulations! You have passed the test with higher distinction.</h1>";
+        } else {
+            document.getElementById("message")
+                .innerHTML = "<h1>Congratulations! You have passed the test with highest distinction.</h1>";
+        }
+
+    </script>
+
 </body>
+
 </html>
