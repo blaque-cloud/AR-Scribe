@@ -38,6 +38,7 @@
         .button:hover {
             background-color: #e0e0e0;
         }
+
         .image-button {
             background-image: url('/static/img/play_audio.png');
             background-size: cover;
@@ -56,7 +57,7 @@
 <body>
 
     <div class="video-container">
-        <img src="{{ url_for('eval_feed') }}" width="1536" height="790" >
+        <img src="{{ url_for('eval_feed') }}" width="1536" height="790">
     </div>
 
     <div class="buttons-container">
@@ -66,7 +67,8 @@
     </div>
 
     <div id="content">
-        <audio id="aud" style="display: none;" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 2500)"></audio>
+        <audio id="aud" style="display: none;"
+            onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 2000)"></audio>
         <button id="img-but" class="image-button"></button>
     </div>
 
@@ -74,39 +76,40 @@
         var char, ra;
 
         fetch("/get_char")
-        .then(response => response.json())
-        .then(data => {
-            const audElement = document.getElementById("aud");
-            char = data.variable;
-            const audSrc = '/static/sounds/' + char + '.mp3';
-            audElement.src = audSrc;
-            console.log(audSrc);
-        })
-        .catch(error => console.error("Error fetching Python variable:", error));
+            .then(response => response.json())
+            .then(data => {
+                const audElement = document.getElementById("aud");
+                char = data.variable;
+                const audSrc = '/static/sounds/' + char + '.mp3';
+                audElement.src = audSrc;
+                console.log(audSrc);
+            })
+            .catch(error => console.error("Error fetching Python variable:", error));
 
         fetch("/get_ra")
-        .then(response => response.json())
-        .then(data => {
-            ra = data.variable;
+            .then(response => response.json())
+            .then(data => {
+                ra = data.variable;
 
-            if(ra === 0){
-                document.getElementById("aud").style.display = "block";
-            }
-            else{
-                document.getElementById("aud").muted = "true";
-                document.getElementById("img-but").style.bottom = "-200px";
-                document.getElementById("img-but").style.right = "-200px";
-            }
-        })
-        .catch(error => console.error("Error fetching Python variable:", error));
+                if (ra === 1) {
+                    document.getElementById("aud").style.display = "block";
+                }
+                else {
+                    document.getElementById("aud").muted = "true";
+                    document.getElementById("img-but").style.bottom = "-200px";
+                    document.getElementById("img-but").style.right = "-200px";
+                }
+            })
+            .catch(error => console.error("Error fetching Python variable:", error));
 
         const button = document.getElementById('img-but');
 
         button.addEventListener('click', () => {
-        const audPath = '/static/sounds/' + char + '.mp3';
-        const audio = new Audio(audPath);
-        audio.play();
+            const audPath = '/static/sounds/' + char + '.mp3';
+            const audio = new Audio(audPath);
+            audio.play();
         });
     </script>
 </body>
+
 </html>

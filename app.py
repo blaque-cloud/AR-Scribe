@@ -1,4 +1,5 @@
 import math
+import time
 import random
 import cv2
 import keyboard
@@ -16,12 +17,13 @@ app.secret_key = 'your_secret_key_here'
 cap = cv2.VideoCapture(0)
 cap.set(3, 1920)
 cap.set(4, 1080)
-lrn_toggle = False
-prac_toggle = True
+lrn_toggle = True
+prac_toggle = False
 accuracy = 0
-ch = {}
+ch = []
 k = 0
 char = ''
+lrn_char = ''
 ra = 0
 cha = []
 raa = []
@@ -38,10 +40,9 @@ def prac():
     global cap, prac_toggle
 
     prac_char = chr(random.randint(ord('A'), ord('Z')))
-
+    
     cap = cv2.VideoCapture(0)
-    if prac_toggle:
-        video_capture2 = cv2.VideoCapture(f'.\\static\\char\\{prac_char}.mp4')
+    video_capture2 = cv2.VideoCapture(f'.\\static\\char\\{prac_char}.mp4')
 
     hands = mp.solutions.hands
     hand_landmark = hands.Hands(max_num_hands=1)
@@ -56,8 +57,9 @@ def prac():
     prac_mask = np.zeros(frame_shape, dtype='uint8')
     img_pil = Image.fromarray(prac_mask)
     dra = ImageDraw.Draw(img_pil)
-    dra.text((1000, 160), prac_char, font=font, fill=(1, 1, 1))
+    dra.text((150, 160), prac_char, font=font, fill=(1, 1, 1))
     prac_mask = np.array(img_pil)
+    cv2.rectangle(prac_mask, (100, 150), (820, 900), (1, 1, 1), 2)
     cv2.rectangle(prac_mask, (1000, 150), (1720, 900), (1, 1, 1), 2)
 
     prevxy = None
@@ -67,8 +69,10 @@ def prac():
             prac_mask = np.zeros(frame_shape, dtype='uint8')
             img_pil = Image.fromarray(prac_mask)
             dra = ImageDraw.Draw(img_pil)
-            dra.text((1000, 160), prac_char, font=font, fill=(1, 1, 1))
+            dra.text((150, 160), prac_char, font=font, fill=(1, 1, 1))
             prac_mask = np.array(img_pil)
+            cv2.rectangle(prac_mask, (100, 150), (820, 900), (1, 1, 1), 2)
+            cv2.rectangle(prac_mask, (1000, 150), (1720, 900), (1, 1, 1), 2)
 
         success1, frame1 = cap.read()
 
@@ -99,12 +103,11 @@ def prac():
 
                 if d1 < 55 and prevxy is not None:
                     if math.dist(prevxy, [x1, y1]) > 5:
-                        if 1720 > x1 > 1000 > y1 > 150:
+                        if x1 > 100 and x1 < 820 and y1 > 150 and y1 < 900:
+                            cv2.line(prac_mask, prevxy, (x1, y1), colour, thickness)
+                        if x1 > 1000 and x1 < 1720 and y1 > 150 and y1 < 900:
                             cv2.line(prac_mask, prevxy, (x1, y1), colour, thickness)
                 prevxy = (x1, y1)
-
-        if keyboard.is_pressed('z'):
-            print(sum(prac_mask))
 
         frame1 = cv2.resize(frame1, (1920, 1080))
         frame1 = np.where(prac_mask, prac_mask, frame1)
@@ -134,7 +137,10 @@ def eva():
     imgCanvas = np.zeros((1080, 1920, 3), dtype='uint8')
     cv2.rectangle(eva_mask, (900, 150), (1620, 900), (1, 1, 1), 2)
 
-    img_path = f'.\\static\\char\\{char}_img.jpg'
+    if ra == 2:
+        img_path = f'.\\static\\char\\{char}_img.jpg'
+    elif ra == 0:
+        img_path = f'.\\static\\char\\eval\\{char}.jpg'
 
     hands = mp.solutions.hands
     hand_landmark = hands.Hands(max_num_hands=1)
@@ -149,6 +155,7 @@ def eva():
     while True:
         if keyboard.is_pressed('q'):
             eva_mask = np.zeros(frame_shape, dtype='uint8')
+            imgCanvas = np.zeros((1080, 1920, 3), dtype='uint8')
             cv2.rectangle(eva_mask, (900, 150), (1620, 900), (1, 1, 1), 2)
 
         success1, frame1 = cap.read()
@@ -178,8 +185,17 @@ def eva():
                             cv2.line(eva_mask, prevxy, (x1, y1), colour, thickness)
                             cv2.line(imgCanvas, prevxy, (x1, y1), (255, 255, 255), thickness)
                 prevxy = (x1, y1)
-
+        
         if ra == 1:
+            frame1 = cv2.resize(frame1, (1920, 1080))
+            frame1 = np.where(eva_mask, eva_mask, frame1)
+
+            ret, jpeg = cv2.imencode('.jpg', frame1)
+
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
+        
+        else:
             frame1 = cv2.resize(frame1, (1920, 1080))
             frame1 = np.where(eva_mask, eva_mask, frame1)
             frame1 = cv2.resize(frame1, (1050, 700))
@@ -193,25 +209,17 @@ def eva():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
 
-        else:
-            frame1 = cv2.resize(frame1, (1920, 1080))
-            frame1 = np.where(eva_mask, eva_mask, frame1)
-
-            ret, jpeg = cv2.imencode('.jpg', frame1)
-
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
-
 
 def lrn():
-    global cap, lrn_toggle, lrn_ch
+    global cap, lrn_toggle, lrn_ch, lrn_char
 
+    lrn_toggle = True
     lrn_ch += 1
     lrn_char = chr(ord('A') + lrn_ch)
 
     cap = cv2.VideoCapture(0)
     video_capture2 = cv2.VideoCapture(f'.\\static\\char\\{lrn_char}.mp4')
-    img_path = f'.\\static\\char\\{lrn_char}_img.jpg'
+    img_path = f'.\\static\\char\\learn\\{lrn_char}.jpg'
 
     hands = mp.solutions.hands
     hand_landmark = hands.Hands(max_num_hands=1)
@@ -231,14 +239,26 @@ def lrn():
 
     prevxy = None
 
+    start_time = time.time()
+
     while True:
+
+        if not lrn_toggle:
+            if time.time() - start_time > 40:
+                lrn_toggle = not lrn_toggle
+                start_time = time.time()
+        else:
+            if time.time() - start_time > 5:
+                lrn_toggle = not lrn_toggle
+                start_time = time.time()
+
         if keyboard.is_pressed('q'):
             lrn_mask = np.zeros(frame_shape, dtype='uint8')
             img_pil = Image.fromarray(lrn_mask)
             dra = ImageDraw.Draw(img_pil)
             dra.text((1000, 160), lrn_char, font=font, fill=(1, 1, 1))
             lrn_mask = np.array(img_pil)
-
+            
         success1, frame1 = cap.read()
         if not lrn_toggle:
             success2, frame2 = video_capture2.read()
@@ -297,7 +317,7 @@ def learn():
 @app.route('/learn/start')
 def start_learn():
     global lrn_ch
-    if lrn_ch < 25:
+    if lrn_ch < 5:
         return render_template('start_learn.html')
     else:
         return render_template('learn_complete.html')
@@ -315,16 +335,29 @@ def lrn_toggle():
     return 'OK'
 
 
+@app.route("/get_lrnchar")
+def get_lrnchar():
+    global lrn_char
+    return jsonify({"variable": lrn_char})
+
+
 @app.route('/evaluate')
 def evaluate():
+    global ch, accuracy, k, char, ra, cha, raa, cap, imgCanvas
+
+    ima = cv2.resize(imgCanvas, (28, 28))
+    ima = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
+    ima = ima.reshape((28, 28, 1))
+    ima = ima.astype('float32') / 255
+    val = str(AlphaLABELS[np.argmax(AlphaMODEL.predict(np.array([ima])))])
+
     session['page_load_count'] = 0
-    global ch, accuracy, k, char, ra, cha, raa, cap
     k = 0
     accuracy = 0
-    ch = {}
-    # c = ['A', 'B', 'C', 'D']
-    cha = ['C', 'B', 'D']
-    raa = [1, 0, 1]
+    ch = []
+    c = ['A', 'B', 'C', 'D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+    cha = random.choices(c, k = 12)
+    raa = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2]
     char = cha[k]
     ra = raa[k]
     cap.release()
@@ -332,19 +365,18 @@ def evaluate():
 
 
 def fun():
-    global imgCanvas, accuracy, ch, k, char, ra
+    global imgCanvas, accuracy, ch, k, char, ra, cha, raa
     ima = cv2.resize(imgCanvas, (28, 28))
     ima = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
     ima = ima.reshape((28, 28, 1))
     ima = ima.astype('float32') / 255
     val = str(AlphaLABELS[np.argmax(AlphaMODEL.predict(np.array([ima])))])
 
-    kx = k - 1
     accuracy += 1
-    ch[cha[kx]] = val
+    ch.append(val)
 
     k += 1
-    if k < 3:
+    if k < 12:
         char = cha[k]
         ra = raa[k]
     return
@@ -358,18 +390,17 @@ def start_eva():
 
 @app.route('/evaluate/start')
 def start_evaluate():
-    global ch, accuracy
+    global ch
     if 'page_load_count' not in session:
         session['page_load_count'] = 0
 
     session['page_load_count'] += 1
 
-    if session['page_load_count'] <= 3:
+    if session['page_load_count'] <= 12:
         return render_template('start_evaluate.html')
     else:
+        print(cha)
         print(ch)
-        ch = {}
-        accuracy = 0
         session.pop('page_load_count', None)
         return redirect(url_for('result_evaluate'))
 

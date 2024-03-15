@@ -64,10 +64,24 @@
         <button class="button" onclick="window.location.href='/learn'">Exit</button>
         <button class="button" onclick="window.location.href='/learn/start'">Next</button>
     </div>
-
+    <audio id="aud" style="display: none;"
+        onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 2000)"></audio>
     <button class="toggle_button" onclick="tog()"></button>
 
     <script>
+        var char;
+
+        fetch("/get_lrnchar")
+            .then(response => response.json())
+            .then(data => {
+                const audElement = document.getElementById("aud");
+                char = data.variable;
+                const audSrc = '/static/sounds/' + char + '_learn.mp3';
+                audElement.src = audSrc;
+                console.log(audSrc);
+            })
+            .catch(error => console.error("Error fetching Python variable:", error));
+
         function tog() {
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/lrn_toggle', true);
