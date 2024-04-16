@@ -63,7 +63,7 @@
     <div class="buttons-container">
         <button class="button" onclick="window.location.href='/evaluate'">Exit</button>
 
-        <button class="button" onclick="window.location.href='/evaluate/start_next'">Next</button>
+        <button class="button" onclick="tim(); window.location.href='/evaluate/start_next'">Next</button>
     </div>
 
     <div id="content">
@@ -109,6 +109,18 @@
             const audio = new Audio(audPath);
             audio.play();
         });
+
+        function tim() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/tim', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    console.log('TIME');
+                }
+            };
+            xhr.send();
+        }
     </script>
 </body>
 

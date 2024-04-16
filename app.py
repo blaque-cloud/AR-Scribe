@@ -35,6 +35,9 @@ AlphaLABELS = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8
                10: 'K', 11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T',
                20: 'U', 21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z', 26: ''}
 
+t = 0
+
+time_list = []
 
 def prac():
     global cap, prac_toggle
@@ -130,7 +133,7 @@ def eva():
     global cap
     global ra
     global imgCanvas
-
+    global t
     cap = cv2.VideoCapture(0)
 
     eva_mask = np.zeros(frame_shape, dtype='uint8')
@@ -391,10 +394,11 @@ def start_eva():
 
 @app.route('/evaluate/start')
 def start_evaluate():
-    global result
+    global result, t
     if 'page_load_count' not in session:
         session['page_load_count'] = 0
 
+    t = time.time()
     session['page_load_count'] += 1
 
     if session['page_load_count'] <= 12:
@@ -402,8 +406,18 @@ def start_evaluate():
     else:
         print(cha)
         print(result)
+        print(time_list)
         session.pop('page_load_count', None)
+        with open('eval_time.txt', 'a') as f:
+            f.write('\n' + str(time_list))
         return redirect(url_for('result_evaluate'))
+
+
+@app.route('/tim', methods=['POST'])
+def tim():
+    global t
+    time_list.append(math.ceil(time.time() - t - 2))
+    return 'OK'
 
 
 @app.route('/evaluate/result')
@@ -416,7 +430,7 @@ def result_evaluate():
 @app.route("/get_result")
 def get_result():
     global result
-    result = [0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0]
+    result = [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0]
     return jsonify({"l1": sum(result[0:4]), "l2": sum(result[4:8]), "l3": sum(result[8:12])})
 
 
