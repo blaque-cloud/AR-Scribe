@@ -71,6 +71,8 @@
 
     <button class="toggle_button" onclick="tog()"></button>
 
+    <h2 id="timer" style="position: absolute; top: 10px; right: 50px;">00:00.000</h2>
+
     <script>
         function tog() {
             var xhr = new XMLHttpRequest();
@@ -83,6 +85,30 @@
             };
             xhr.send();
         }
+
+        let milliseconds = 0;
+        let seconds = -2;
+        let minutes = 0;
+
+        function pad(n, width) {
+            n = n + '';
+            return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
+        }
+
+        setInterval(function () {
+            milliseconds += 10;
+            if (milliseconds >= 1000) {
+                seconds++;
+                milliseconds = 0;
+            }
+            if (seconds >= 60) {
+                minutes++;
+                seconds = 0;
+            }
+            if (seconds >= 0) {
+                document.getElementById('timer').innerHTML = pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(milliseconds, 3);
+            }
+        }, 10);
     </script>
 </body>
 

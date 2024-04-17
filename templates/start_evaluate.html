@@ -72,6 +72,8 @@
         <button id="img-but" class="image-button"></button>
     </div>
 
+    <h2 id="timer" style="position: absolute; top: 10px; right: 50px;">00:00</h2>
+
     <script>
         var char, ra;
 
@@ -121,6 +123,24 @@
             };
             xhr.send();
         }
+
+        let seconds = -2;
+        let minutes = 0;
+
+        function pad(n) {
+            return (n < 10) ? ("0" + n) : n;
+        }
+
+        setInterval(function () {
+            seconds++;
+            if (seconds >= 60) {
+                minutes++;
+                seconds = 0;
+            }
+            if (seconds >= 0) {
+                document.getElementById('timer').innerHTML = pad(minutes) + ":" + pad(seconds);
+            }
+        }, 1000);
     </script>
 </body>
 

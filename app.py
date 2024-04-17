@@ -12,7 +12,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'
+app.secret_key = 'secret_key'
 
 cap = cv2.VideoCapture(0)
 cap.set(3, 1920)
@@ -27,6 +27,7 @@ lrn_char = ''
 ra = 0
 cha = []
 raa = []
+pred = []
 lrn_ch = -1
 frame_shape = (1080, 1920, 3)
 imgCanvas = np.zeros((1080, 1920, 3), dtype='uint8')
@@ -368,16 +369,23 @@ def evaluate():
 
 
 def fun():
-    global imgCanvas, accuracy, result, k, char, ra, cha, raa
-    ima = cv2.resize(imgCanvas, (28, 28))
-    ima = cv2.cvtColor(ima, cv2.COLOR_BGR2GRAY)
-    ima = ima.reshape((28, 28, 1))
-    ima = ima.astype('float32') / 255
-    val = str(AlphaLABELS[np.argmax(AlphaMODEL.predict(np.array([ima])))])
+    global imgCanvas, accuracy, result, k, char, ra, cha, raa, pred
+
+    mask = imgCanvas[150:900, 900:1620]
+    mask = cv2.resize(mask, (28, 28))
+    mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    mask = mask.reshape((28,28,1))
+    mask = mask.astype('float32') / 255
+
+    val = str(AlphaLABELS[np.argmax(AlphaMODEL.predict(mask.reshape(1,28,28,1)))])
+
+    pred.append(val)
 
     accuracy += 1
-    if val == val:
+    if val == char:
         result.append(1)
+    else:
+        result.append(0)
 
     k += 1
     if k < 12:
@@ -405,6 +413,7 @@ def start_evaluate():
         return render_template('start_evaluate.html')
     else:
         print(cha)
+        print(pred)
         print(result)
         print(time_list)
         session.pop('page_load_count', None)
@@ -416,7 +425,7 @@ def start_evaluate():
 @app.route('/tim', methods=['POST'])
 def tim():
     global t
-    time_list.append(math.ceil(time.time() - t - 2))
+    time_list.append(round((time.time() - t - 2), 2))
     return 'OK'
 
 
@@ -430,7 +439,7 @@ def result_evaluate():
 @app.route("/get_result")
 def get_result():
     global result
-    result = [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0]
+    #result = [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0]
     return jsonify({"l1": sum(result[0:4]), "l2": sum(result[4:8]), "l3": sum(result[8:12])})
 
 
