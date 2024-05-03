@@ -39,6 +39,13 @@
             font-weight: normal;
         }
 
+        .name {
+            font-size: 36px;
+            margin-bottom: 10px;
+            font-family: "Montserrat Italic";
+            font-weight: normal;
+        }
+
         .button {
             padding: 10px 20px;
             font-size: 18px;
@@ -48,6 +55,8 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            margin-top: 20px;
+            margin-left: 90px;
         }
 
         .button:hover {
@@ -64,10 +73,10 @@
             position: absolute;
             top: 10px;
             right: 1435px;
-            margin-right: 10px; /* Added margin to separate button and image */
-            padding: 10; /* Removed padding */
-            background-color: transparent; /* Transparent background */
-            border: none; /* Removed border */
+            margin-right: 10px;
+            padding: 10;
+            background-color: transparent;
+            border: none;
             cursor: pointer;
 
         }
@@ -80,17 +89,31 @@
             width: 55px;
             height: auto;
         }
+
+        input[type="text"] {
+            border-radius: 15px;
+            padding: 10px;
+            font-size: 22px;
+            font-family: "Montserrat Italic";
+            font-weight: normal;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body>
     <div class="left-section">
-        <h1 class="title">Evaluate</h1>
-        <button class="button" onclick="window.location.href='/evaluate/start'">Start Test</button>
+        <h1 class="title" style="margin-bottom: 20px;">Evaluate</h1>
+        <form action="/get_name" method="post">
+            <input type="text" name="name" placeholder="Enter Name" required>
+            <br>
+            <button type="submit" class="button" onclick="window.location.href='/evaluate/start'">Start Test</button>
+        </form>
         <button class="home_button" onclick="window.location.href='/'">
             <img src="/static/img/home.png" alt="Home">
         </button>
     </div>
     <div class="right-section"></div>
 </body>
+
 </html>

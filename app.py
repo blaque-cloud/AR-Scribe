@@ -5,8 +5,10 @@ import cv2
 import keyboard
 import mediapipe as mp
 import numpy as np
+import pandas as pd
+import ast
 from PIL import Image, ImageDraw, ImageFont
-from flask import Flask, render_template, Response, redirect, url_for, session, jsonify
+from flask import Flask, render_template, Response, redirect, url_for, session, jsonify, request
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 from tensorflow.keras.models import load_model
@@ -20,8 +22,10 @@ cap.set(4, 1080)
 lrn_toggle = True
 prac_toggle = False
 accuracy = 0
+name = ''
 result = []
 k = 0
+prac_time = -1
 char = ''
 lrn_char = ''
 ra = 0
@@ -402,7 +406,7 @@ def start_eva():
 
 @app.route('/evaluate/start')
 def start_evaluate():
-    global result, t
+    global result, t, pred, time_list
     if 'page_load_count' not in session:
         session['page_load_count'] = 0
 
@@ -417,9 +421,60 @@ def start_evaluate():
         print(result)
         print(time_list)
         session.pop('page_load_count', None)
-        with open('eval_time.txt', 'a') as f:
-            f.write('\n' + str(time_list))
+
+        with open('eva_iter.txt', 'r') as file:
+            c=file.read()
+        file.close()
+        c=ast.literal_eval(c)
+
+        if name in c:
+            c[name]+=1
+        else:
+            c[name]=1
+
+        temp1 = c[name]
+
+        with open('prac_iter.txt', 'r') as file:
+            d=file.read()
+        file.close()
+        d=ast.literal_eval(d)
+
+        if name not in d:
+            d[name]=0
+
+        temp2 = d[name]
+        with open('eva_iter.txt', 'w') as file:
+            file.write(str(c))
+
+        if not os.path.isfile(f'result/eval/eval_{name}.xlsx'):
+            df = pd.DataFrame({})
+
+            df.to_excel(f'result/eval/eval_{name}.xlsx', index=False)
+
+        df = pd.read_excel(f'result/eval/eval_{name}.xlsx')
+
+        new_data = pd.DataFrame({
+            'Iteration': [temp1]*12,
+            'Times Practiced': [temp2]*12,
+            'Time Taken': time_list,
+            'Result': result
+            })
+        
+        df = df.append(new_data, ignore_index=True)
+        
+        df.to_excel(f'result/eval/eval_{name}.xlsx', index=False)
+        
+        pred = []
+        time_list = []
+
         return redirect(url_for('result_evaluate'))
+
+
+@app.route('/get_name', methods=['POST'])
+def get_name():
+    global name
+    name = request.form.get('name')
+    return start_evaluate()
 
 
 @app.route('/tim', methods=['POST'])
@@ -439,7 +494,6 @@ def result_evaluate():
 @app.route("/get_result")
 def get_result():
     global result
-    #result = [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0]
     return jsonify({"l1": sum(result[0:4]), "l2": sum(result[4:8]), "l3": sum(result[8:12])})
 
 
@@ -457,7 +511,52 @@ def practice():
 
 @app.route('/practice/start')
 def start_practice():
+    global prac_time
+
+    with open('prac_iter.txt', 'r') as file:
+        c=file.read()
+    file.close()
+
+    c=ast.literal_eval(c)
+    if name in c:
+        c[name]+=1
+    else:
+        c[name]=1
+    temp = c[name]
+
+    with open('prac_iter.txt', 'w') as file:
+        file.write(str(c))
+    file.close()
+
+    if not os.path.isfile(f'result/prac/prac_{name}.xlsx'):
+        df = pd.DataFrame({})
+
+        df.to_excel(f'result/prac/prac_{name}.xlsx', index=False)
+
+    df = pd.read_excel(f'result/prac/prac_{name}.xlsx')
+
+    if temp != 1:
+        tt = receive_tt()
+        tt = round(prac_time - time.time(), 2)
+
+        new_data = pd.DataFrame({
+            'Iteration': temp-1,
+            'Time Taken': tt,
+            'Result': random.choices([0, 1])
+            })
+        
+        df = df.append(new_data, ignore_index=True)
+
+    df.to_excel(f'result/prac/prac_{name}.xlsx', index=False)
+    
+    prac_time = time.time()
     return render_template('start_practice.html')
+
+
+@app.route('/receive_tt', methods=['POST'])
+def receive_tt():
+    tt = request.form.get('tt')
+    return tt
 
 
 @app.route('/prac_feed')

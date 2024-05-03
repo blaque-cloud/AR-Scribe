@@ -109,6 +109,17 @@
                 document.getElementById('timer').innerHTML = pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(milliseconds, 3);
             }
         }, 10);
+
+        let tt = pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(milliseconds, 3);
+
+        $.ajax({
+            url: '/receive_tt',
+            type: 'POST',
+            data: { 'tt': tt },
+            success: function (response) {
+                console.log(response);
+            }
+        });
     </script>
 </body>
 
