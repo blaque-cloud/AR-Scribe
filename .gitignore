@@ -1,7 +1,7 @@
 .pytest_cache/
 .vscode/
-eval_time.txt
 eva_iter.txt
 prac_iter.txt
+login_cred.txt
 /result/eval/*
 /result/prac/*

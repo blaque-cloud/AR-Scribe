@@ -6,9 +6,13 @@ import keyboard
 import mediapipe as mp
 import numpy as np
 import pandas as pd
+import pdfkit
+from io import BytesIO
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 import ast
 from PIL import Image, ImageDraw, ImageFont
-from flask import Flask, render_template, Response, redirect, url_for, session, jsonify, request
+from flask import Flask, render_template, Response, redirect, url_for, session, jsonify, request, send_file
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 from tensorflow.keras.models import load_model
@@ -470,11 +474,11 @@ def start_evaluate():
         return redirect(url_for('result_evaluate'))
 
 
-@app.route('/get_name', methods=['POST'])
-def get_name():
+@app.route('/home', methods=['POST'])
+def home():
     global name
     name = request.form.get('name')
-    return start_evaluate()
+    return index()
 
 
 @app.route('/tim', methods=['POST'])
@@ -583,10 +587,46 @@ def get_ra():
     return jsonify({"variable": ra})
 
 
-@app.route('/')
+@app.route('/home')
 def index():
     return render_template('index.html')
 
+
+@app.route('/')
+def login():
+    global name
+    name=''
+    return render_template('login.html')
+
+
+@app.route('/download')
+def download():
+    rendered = render_template('report.html')
+    path_wkhtmltopdf = r'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
+    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+    pdf = pdfkit.from_string(rendered, False, configuration=config)
+    pdf_io = BytesIO(pdf)
+    return send_file(pdf_io, as_attachment=True, download_name='Report.pdf', mimetype='application/pdf')
+
+
+@app.route('/screenshot')
+def screenshot():
+
+    options = Options()
+    options.add_argument("--headless")
+
+    driver = webdriver.Chrome(options=options)
+
+    driver.set_window_size(1920, 1080)
+    
+    driver.get("http://localhost:5000/home")
+
+    screenshot_path = "screenshot.png"
+    driver.save_screenshot(screenshot_path)
+
+    driver.quit()
+
+    return send_file(screenshot_path, mimetype='image/png')
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)
