@@ -6,5 +6,7 @@ lrn_iter.txt
 login_cred.txt
 time.txt
 score.txt
+output.pdf
+screenshot.png
 /result/eval/*
 /result/prac/*
