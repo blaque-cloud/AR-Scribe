@@ -2,6 +2,9 @@
 .vscode/
 eva_iter.txt
 prac_iter.txt
+lrn_iter.txt
 login_cred.txt
+time.txt
+score.txt
 /result/eval/*
 /result/prac/*

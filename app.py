@@ -10,6 +10,8 @@ import pdfkit
 from io import BytesIO
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from PIL import Image
+from reportlab.pdfgen import canvas
 import ast
 from PIL import Image, ImageDraw, ImageFont
 from flask import Flask, render_template, Response, redirect, url_for, session, jsonify, request, send_file
@@ -426,6 +428,50 @@ def start_evaluate():
         print(time_list)
         session.pop('page_load_count', None)
 
+        with open('score.txt', 'r') as file:
+            sc=file.read()
+        file.close()
+        sc=ast.literal_eval(sc)
+
+        if name not in sc:
+            temp=[]
+            temp.append(sum(result[0:4]))
+            temp.append(sum(result[4:8]))
+            temp.append(sum(result[8:12]))
+            sc[name]=[temp]
+        else:
+            temp=[]
+            temp.append(sum(result[0:4]))
+            temp.append(sum(result[4:8]))
+            temp.append(sum(result[8:12]))
+            sc[name].append(temp)
+
+        with open('time.txt', 'r') as file:
+            ti=file.read()
+        file.close()
+        ti=ast.literal_eval(ti)
+
+        if name not in ti:
+            temp=[]
+            temp.append(((sum(time_list[0:4]))/4))
+            temp.append(((sum(time_list[4:8]))/4))
+            temp.append(((sum(time_list[8:12]))/4))
+            ti[name]=[temp]
+        else:
+            temp=[]
+            temp.append(((sum(time_list[0:4]))/4))
+            temp.append(((sum(time_list[4:8]))/4))
+            temp.append(((sum(time_list[8:12]))/4))
+            ti[name].append(temp)
+
+        with open('score.txt', 'w') as file:
+            file.write(str(sc))
+        file.close()
+
+        with open('time.txt', 'w') as file:
+            file.write(str(ti))
+        file.close()
+
         with open('eva_iter.txt', 'r') as file:
             c=file.read()
         file.close()
@@ -599,14 +645,9 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/download')
-def download():
-    rendered = render_template('report.html')
-    path_wkhtmltopdf = r'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
-    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-    pdf = pdfkit.from_string(rendered, False, configuration=config)
-    pdf_io = BytesIO(pdf)
-    return send_file(pdf_io, as_attachment=True, download_name='Report.pdf', mimetype='application/pdf')
+@app.route('/report')
+def report():
+    return render_template('report.html')
 
 
 @app.route('/screenshot')
@@ -617,16 +658,105 @@ def screenshot():
 
     driver = webdriver.Chrome(options=options)
 
-    driver.set_window_size(1920, 1080)
+    driver.set_window_size(1540, 830)
     
-    driver.get("http://localhost:5000/home")
+    driver.get("http://localhost:5000/report")
 
     screenshot_path = "screenshot.png"
     driver.save_screenshot(screenshot_path)
 
     driver.quit()
 
+    img = Image.open('screenshot.png')
+
+    c = canvas.Canvas('output.pdf')
+
+    c.setPageSize((img.width, img.height))
+
+    c.drawImage('screenshot.png', 0, 0, img.width, img.height)
+
+    c.save()
+
     return send_file(screenshot_path, mimetype='image/png')
+
+
+@app.route("/get_data")
+def get_data():
+
+    with open('eva_iter.txt', 'r') as file:
+        c3=file.read()
+    file.close()
+    c3=ast.literal_eval(c3)
+    c3=c3[name]
+
+    with open('lrn_iter.txt', 'r') as file:
+        c1=file.read()
+    file.close()
+    c1=ast.literal_eval(c1)
+    c1=c1[name]
+
+    with open('prac_iter.txt', 'r') as file:
+        c2=file.read()
+    file.close()
+    c2=ast.literal_eval(c2)
+    c2=c2[name]
+    
+    data3_values = [c1, c2, c3]
+
+    with open('score.txt', 'r') as file:
+        sc=file.read()
+    file.close()
+    sc=ast.literal_eval(sc)
+    sc=sc[name]
+    
+    with open('time.txt', 'r') as file:
+        ti=file.read()
+    file.close()
+    ti=ast.literal_eval(ti)
+    ti=ti[name]
+
+    data2_x = [i for i in range(1, c3+1)]
+    data2_y1 = []
+    data2_y2 = []
+    data2_y3 = []
+
+    for i in range(c3):
+        data2_y1.append(sc[i][0])
+        data2_y2.append(sc[i][1])
+        data2_y3.append(sc[i][2])
+
+    data2_xaxis = [0, c3+1]
+    data2_yaxis = [0, max(max(data2_y1), max(data2_y2), max(data2_y3)) + 1]
+
+    time1 = []
+    time2 = []
+    time3 = []
+
+    for i in range(c3):
+        time1.append(ti[i][0])
+        time2.append(ti[i][1])
+        time3.append(ti[i][2])
+    
+    mx_time = [0, max(max(time1), max(time2), max(time3)) + 1]
+
+    return jsonify(
+        {
+            "data3_values": data3_values,
+            "data2_y1": data2_y1,
+            "data2_y2": data2_y2,
+            "data2_y3": data2_y3,
+            "data2_x": data2_x,
+            "data2_xaxis": data2_xaxis,
+            "data2_yaxis": data2_yaxis,
+            "data1_xaxis": data2_xaxis,
+            "data1_x": data2_x,
+            "time1": time1,
+            "time2": time2,
+            "time3": time3,
+            "mx_time": mx_time,
+        }
+    )
+
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

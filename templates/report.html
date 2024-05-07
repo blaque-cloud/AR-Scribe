@@ -1,0 +1,173 @@
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Montserrat';
+            text-align: center;
+            color: #fff;
+            src: local('Montserrat Italic'), local('Montserrat-Italic'), url("//static.parastorage.com/tag-bundler/api/v1/fonts-cache/googlefont/woff2/s/montserrat/v14/JTUQjIg1_i6t8kCHKm459WxRzS7m0dR9pBOi.woff2") format('woff2');
+            unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+            font-display: block;
+            background-color: #311e98;
+        }
+
+        .page-container {
+            display: flex;
+        }
+
+        .right-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .left-section {
+            flex: 1;
+        }
+
+        .plot {
+            height: 400px;
+            width: 750px;
+        }
+
+        .pie {
+            height: 400px;
+            width: 750px;
+        }
+
+        .n {
+            height: 410px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+    </style>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body>
+
+    <div class="page-container">
+        <div class="left-section">
+            <div class="n">
+                <h1>NAME</h1>
+                <br>
+                <h3>GRADE</h3>
+            </div>
+            <div id="myPlot3" class="pie"></div>
+        </div>
+        <div class="right-section">
+            <div id="myPlot1" class="plot"></div>
+            <div id="myPlot2" class="plot"></div>
+        </div>
+    </div>
+
+    <script>
+
+        fetch("/get_data")
+            .then(response => response.json())
+            .then(data => {
+
+                var data1_xaxis, data1_x, time1, time2, time3, mx_time;
+
+                data1_x = data.data1_x;
+                data1_xaxis = data.data1_xaxis;
+                time1 = data.time1;
+                time2 = data.time2;
+                time3 = data.time3;
+                mx_time = data.mx_time;
+
+                const level1 = {
+                    x: data1_x,
+                    y: time1,
+                    type: "scatter",
+                    name: "Level 1"
+                };
+
+                const level2 = {
+                    x: data1_x,
+                    y: time2,
+                    type: "scatter",
+                    name: "Level 2"
+                };
+
+                const level3 = {
+                    x: data1_x,
+                    y: time3,
+                    type: "scatter",
+                    name: "Level 3"
+                };
+
+                const layout1 = {
+                    xaxis: { range: data1_xaxis, title: "Test No." },
+                    yaxis: { range: mx_time, title: "Avg. Time Taken(sec.)" },
+                    title: "Avg. Time Taken per Test",
+                };
+
+                const data1 = [level1, level2, level3];
+                Plotly.newPlot("myPlot1", data1, layout1);
+
+                var data2_y1, data2_y2, data2_y3, data2_x, data2_xaxis, data2_yaxis;
+
+                data2_y1 = data.data2_y1;
+                data2_y2 = data.data2_y2;
+                data2_y3 = data.data2_y3;
+                data2_x = data.data2_x;
+                data2_xaxis = data.data2_xaxis;
+                data2_yaxis = data.data2_yaxis;
+
+                const score1 = {
+                    x: data2_x,
+                    y: data2_y1,
+                    type: "scatter",
+                    name: "Level 1"
+                };
+
+                const score2 = {
+                    x: data2_x,
+                    y: data2_y2,
+                    type: "scatter",
+                    name: "Level 2"
+                };
+
+                const score3 = {
+                    x: data2_x,
+                    y: data2_y3,
+                    type: "scatter",
+                    name: "Level 3"
+                };
+
+                const layout2 = {
+                    xaxis: { range: data2_xaxis, title: "Test No." },
+                    yaxis: { range: data2_yaxis, title: "Score" },
+                    title: "Score Taken per Test"
+                };
+
+                const data2 = [score1, score2, score3];
+                Plotly.newPlot("myPlot2", data2, layout2);
+
+                var data3_values = data.data3_values;
+                console.log(data3_values);
+                var data3 = [{
+                    labels: ['Learn', 'Practice', 'Test'],
+                    values: data3_values,
+                    hole: 0.4,
+                    type: "pie"
+                }];
+
+                const layout3 = {
+                    title: "Usage Distribution"
+                };
+
+                Plotly.newPlot("myPlot3", data3, layout3);
+            })
+            .catch(error => console.error("Error fetching Python variable:", error));
+
+    </script>
+
+</body>
+
+</html>
