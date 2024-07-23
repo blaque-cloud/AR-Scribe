@@ -5,11 +5,9 @@
         body {
             font-family: 'Montserrat';
             text-align: center;
-            color: #fff;
             src: local('Montserrat Italic'), local('Montserrat-Italic'), url("//static.parastorage.com/tag-bundler/api/v1/fonts-cache/googlefont/woff2/s/montserrat/v14/JTUQjIg1_i6t8kCHKm459WxRzS7m0dR9pBOi.woff2") format('woff2');
             unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
             font-display: block;
-            background-color: #311e98;
         }
 
         .page-container {
@@ -53,15 +51,15 @@
     <div class="page-container">
         <div class="left-section">
             <div class="n">
-                <h1>NAME</h1>
+                <h1 id="name">Name</h1>
                 <br>
-                <h3>GRADE</h3>
+                <h3 id="grade">Grade</h3>
             </div>
-            <div id="myPlot3" class="pie"></div>
+            <div id="myPlot2" class="pie"></div>
         </div>
         <div class="right-section">
+            <div id="myPlot3" class="plot"></div>
             <div id="myPlot1" class="plot"></div>
-            <div id="myPlot2" class="plot"></div>
         </div>
     </div>
 
@@ -70,6 +68,14 @@
         fetch("/get_data")
             .then(response => response.json())
             .then(data => {
+
+                var name, grade;
+
+                name = data.name;
+                grade = data.grade;
+
+                document.getElementById("name").innerHTML = "Name: " + name;
+                document.getElementById("grade").innerHTML = "Grade: " + grade;
 
                 var data1_xaxis, data1_x, time1, time2, time3, mx_time;
 

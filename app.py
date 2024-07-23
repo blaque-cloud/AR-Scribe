@@ -6,8 +6,6 @@ import keyboard
 import mediapipe as mp
 import numpy as np
 import pandas as pd
-import pdfkit
-from io import BytesIO
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
@@ -29,6 +27,7 @@ lrn_toggle = True
 prac_toggle = False
 accuracy = 0
 name = ''
+grade = ''
 result = []
 k = 0
 prac_time = -1
@@ -522,8 +521,9 @@ def start_evaluate():
 
 @app.route('/home', methods=['POST'])
 def home():
-    global name
+    global name, grade
     name = request.form.get('name')
+    grade = request.form.get('class')
     return index()
 
 
@@ -662,18 +662,18 @@ def screenshot():
     
     driver.get("http://localhost:5000/report")
 
-    screenshot_path = "screenshot.png"
+    screenshot_path = "C:\\Users\\sakth\\Downloads\\screenshot.png"
     driver.save_screenshot(screenshot_path)
 
     driver.quit()
 
-    img = Image.open('screenshot.png')
+    img = Image.open('C:\\Users\\sakth\\Downloads\\screenshot.png')
 
-    c = canvas.Canvas('output.pdf')
+    c = canvas.Canvas('C:\\Users\\sakth\\Downloads\\output.pdf')
 
     c.setPageSize((img.width, img.height))
 
-    c.drawImage('screenshot.png', 0, 0, img.width, img.height)
+    c.drawImage('C:\\Users\\sakth\\Downloads\\screenshot.png', 0, 0, img.width, img.height)
 
     c.save()
 
@@ -741,6 +741,8 @@ def get_data():
 
     return jsonify(
         {
+            "name": name,
+            "grade": grade,
             "data3_values": data3_values,
             "data2_y1": data2_y1,
             "data2_y2": data2_y2,

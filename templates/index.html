@@ -106,6 +106,22 @@
             width: 55px;
             height: auto;
         }
+
+        .download-button {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            padding: 10px 20px;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .download-button:hover {
+            background-color: #007B9A;
+        }
     </style>
 </head>
 
@@ -134,6 +150,8 @@
         <img src="/static/img/home.png" alt="Home">
     </button>
 
+    <a onclick="window.location.href='/screenshot'" download class="download-button">Download</a>
+
 </body>
 
-</html>
+</html> 
